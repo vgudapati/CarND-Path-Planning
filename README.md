@@ -143,3 +143,40 @@ still be compilable with cmake and make./
 ## How to write a README
 A well written README file can enhance your project and portfolio.  Develop your abilities to create professional README files by completing [this free course](https://www.udacity.com/course/writing-readmes--ud777).
 
+## Reflection
+
+The solution is very closely modeled based on the explanation provided in the [Project Q & A](https://classroom.udacity.com/nanodegrees/nd013/parts/6047fe34-d93c-4f50-8336-b70ef10cb4b2/modules/27800789-bc8e-4adc-afe0-ec781e82ceae/lessons/23add5c6-7004-47ad-b169-49a5d7b1c1cb/concepts/3bdfeb8c-8dd6-49a7-9d08-beff6703792d) video. As discussed in the video, we are using the spline library for interpolating the points to generate the path needed. 
+
+* Start in the middle lane (lane = 1) [line 58](https://github.com/vgudapati/CarND-Path-Planning/blob/master/src/main.cpp#L58)
+* Start with a reference velocity of 0.0 [line 61](https://github.com/vgudapati/CarND-Path-Planning/blob/master/src/main.cpp#L61)
+* Based on the localization and sensor fusion data we need to find the reference velocity(ref_v) to use.
+* During the path planning we will be using the points from the previous path and calculate the number of points that we traversed from the previous path.
+
+
+* First up we check if any lane changes needs to happen depending upon cars current location and surroundings and speed. Contemplate lane changes and take action. 
+* Using sensor fusion data, we identify if there is a car in other lanes. [lines 120-130](https://github.com/vgudapati/CarND-Path-Planning/blob/master/src/main.cpp#L120)
+* Once we know which lane other cars and based on the lane we are in, we determine if any other car is in the vicinity of our car. [lines 140-151](https://github.com/vgudapati/CarND-Path-Planning/blob/master/src/main.cpp#L140)
+  * If there is antoher car in front of our car and our car is in one of the right lanes, we attempt to change to one of the left lanes. [lines 192-197](https://github.com/vgudapati/CarND-Path-Planning/blob/master/src/main.cpp#L192)
+  * If there is antoher car in front of our car and our car is in one of the left lanes, we attempt to change to one of the right lanes. [lines 199-201](https://github.com/vgudapati/CarND-Path-Planning/blob/master/src/main.cpp#L199)
+  * If there is antoher car in front of our car and a lane change is not possible, we simply reduce speed. [line 203](https://github.com/vgudapati/CarND-Path-Planning/blob/master/src/main.cpp#L203)
+  * If there is not another car in front of our car, we attpemt to maintain the speed almost up to the speed limit (49.5 here). [lines 213-215](https://github.com/vgudapati/CarND-Path-Planning/blob/master/src/main.cpp#L213)
+  * Once i implemented the above procedure and tested, i found a couple of problems.
+    * When the car is changing two lanes at a time, there is too much jerk.
+    * Also, the scope for accident was higher in such instances.
+  * To address the above two issues, i have implemented code to maintain the car in the middle lane when the surroundings permit. This mostly solved both the issues mentioned above. [lines 207-211](https://github.com/vgudapati/CarND-Path-Planning/blob/master/src/main.cpp#L207)
+* Create a list of widely spaced (x, y) waypoints, evenly spaced at 30m
+* Later we will interpolate these waypoints with a spline and fill it in with more points that control speed
+* Define reference x, y, yaw states
+* If the previous size is almost empty, use the car as starting reference
+  * Use two points that make the path tangent to the car and push these points to the path. [lines 231-242](https://github.com/vgudapati/CarND-Path-Planning/blob/master/src/main.cpp#L231)
+  * Otherwise, the previous path's end point as starting reference and use two points that make the path tangent to the previous path's end point. [lines 245-262](https://github.com/vgudapati/CarND-Path-Planning/blob/master/src/main.cpp#L245)
+  * Once we have the starting reference, we use Frenet to generate additional points that are widely spaced at 30, 60 and 90m depending upon which lane our car is. Subsequently add these points to the path. [lines 264-276](https://github.com/vgudapati/CarND-Path-Planning/blob/master/src/main.cpp#L264)
+  //In Frenet add evenly 30m spaced points ahead of the starting reference
+  * Using the points generated we shift car reference angle to 0 degrees. [lines 278-285](https://github.com/vgudapati/CarND-Path-Planning/blob/master/src/main.cpp#L278)
+  * Create a spline. Set (x, y) points to the spline. Define the actual (x, y) points we will use for the planner. [lines 288-296](https://github.com/vgudapati/CarND-Path-Planning/blob/master/src/main.cpp#L288)
+  * Using the points we create the path planner. The rationale for paht planner is to use any of the points left from the previous path. [lines 304-308](https://github.com/vgudapati/CarND-Path-Planning/blob/master/src/main.cpp#L304)
+  * Then fill up the rest of out path planner after filling it with previous points, here we will always output 50 points. Also, rotate back to normal after rotating it earlier. [lines 318-338](https://github.com/vgudapati/CarND-Path-Planning/blob/master/src/main.cpp#L318)
+  
+  
+
+
